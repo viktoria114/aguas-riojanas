@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as RankingRouteImport } from './routes/ranking'
+import { Route as ZonaKidsRouteImport } from './routes/zona-kids'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,40 +25,58 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RankingRoute = RankingRouteImport.update({
   id: '/ranking',
   path: '/ranking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ZonaKidsRoute = ZonaKidsRouteImport.update({
+  id: '/zona-kids',
+  path: '/zona-kids',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/perfil': typeof PerfilRoute
   '/ranking': typeof RankingRoute
+  '/zona-kids': typeof ZonaKidsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/perfil': typeof PerfilRoute
   '/ranking': typeof RankingRoute
+  '/zona-kids': typeof ZonaKidsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/perfil': typeof PerfilRoute
   '/ranking': typeof RankingRoute
+  '/zona-kids': typeof ZonaKidsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/ranking'
+  fullPaths: '/' | '/admin' | '/perfil' | '/ranking' | '/zona-kids'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/ranking'
-  id: '__root__' | '/' | '/admin' | '/ranking'
+  to: '/' | '/admin' | '/perfil' | '/ranking' | '/zona-kids'
+  id: '__root__' | '/' | '/admin' | '/perfil' | '/ranking' | '/zona-kids'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  PerfilRoute: typeof PerfilRoute
   RankingRoute: typeof RankingRoute
+  ZonaKidsRoute: typeof ZonaKidsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,11 +95,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ranking': {
       id: '/ranking'
       path: '/ranking'
       fullPath: '/ranking'
       preLoaderRoute: typeof RankingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/zona-kids': {
+      id: '/zona-kids'
+      path: '/zona-kids'
+      fullPath: '/zona-kids'
+      preLoaderRoute: typeof ZonaKidsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -88,7 +122,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  PerfilRoute: PerfilRoute,
   RankingRoute: RankingRoute,
+  ZonaKidsRoute: ZonaKidsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
