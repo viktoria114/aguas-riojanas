@@ -38,6 +38,7 @@ export interface Hogar {
   insignias: string[];
   consumoHistorico: number;
   consumoActual: number;
+  esMiHogar?: boolean;
 }
 
 export type ModoSimulacion = "normal" | "fuga" | "ahorro";
@@ -175,29 +176,50 @@ const ALL_HOGARES: Hogar[] = [];
 let counter = 4001;
 
 for (const barrio of BARRIOS) {
-  const n = 8 + Math.floor(rH() * 3);
+  const isSanFrancisco = barrio.id === "norte-barrio-san-francisco";
+  const n = isSanFrancisco ? 8 : 8 + Math.floor(rH() * 3);
+
   for (let i = 0; i < n; i++) {
     const id = `hogar-${counter}`;
-    const alias = `Hogar #${counter}`;
+    let alias = `Hogar #${counter}`;
+    let esMiHogar = false;
     counter++;
 
-    const consumoHistorico = Math.round(8000 + rH() * 6000);
-    const factor = 0.55 + rH() * 0.5;
-    const consumoActual = Math.round(consumoHistorico * factor);
-    const score = Math.round(Math.max(35, Math.min(99, 48 + rH() * 52)));
+    let score: number;
+    let tendencia: Tendencia;
+    let insignias: string[] = [];
 
-    const tRand = rH();
-    const tendencia: Tendencia =
-      tRand < 0.35 ? "subio" : tRand < 0.7 ? "bajo" : "estable";
-
-    const insignias: string[] = [];
-    for (const ins of INSIGNIAS_DEFS) {
-      if (ins.minScore === 0) {
-        if (rH() > 0.7) insignias.push(`${ins.emoji} ${ins.nombre}`);
-      } else if (score >= ins.minScore) {
-        insignias.push(`${ins.emoji} ${ins.nombre}`);
+    if (isSanFrancisco) {
+      // Deterministic positions for Barrio San Francisco
+      const scoresSanFrancisco = [97, 94, 92, 90, 89, 83, 78, 72];
+      score = scoresSanFrancisco[i] ?? 80;
+      if (i === 4) {
+        // Position #5: Familia Ruiz (Mi Hogar)
+        alias = "Familia Ruiz (Tu Hogar)";
+        esMiHogar = true;
+        tendencia = "subio";
+        insignias = ["⭐ Top 10% zona", "💧 Ahorrador", "🔥 Racha 7 días"];
+      } else {
+        tendencia = i % 2 === 0 ? "subio" : "bajo";
+        for (const ins of INSIGNIAS_DEFS) {
+          if (score >= ins.minScore && ins.minScore > 0) insignias.push(`${ins.emoji} ${ins.nombre}`);
+        }
+      }
+    } else {
+      score = Math.round(Math.max(35, Math.min(99, 48 + rH() * 52)));
+      const tRand = rH();
+      tendencia = tRand < 0.35 ? "subio" : tRand < 0.7 ? "bajo" : "estable";
+      for (const ins of INSIGNIAS_DEFS) {
+        if (ins.minScore === 0) {
+          if (rH() > 0.7) insignias.push(`${ins.emoji} ${ins.nombre}`);
+        } else if (score >= ins.minScore) {
+          insignias.push(`${ins.emoji} ${ins.nombre}`);
+        }
       }
     }
+
+    const consumoHistorico = Math.round(8000 + rH() * 6000);
+    const consumoActual = Math.round(consumoHistorico * (1 - score / 100));
 
     ALL_HOGARES.push({
       id,
@@ -209,6 +231,7 @@ for (const barrio of BARRIOS) {
       insignias,
       consumoHistorico,
       consumoActual,
+      esMiHogar,
     });
   }
 }

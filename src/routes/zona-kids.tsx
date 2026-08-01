@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { serieDiaria, total } from "@/lib/consumo";
+import { useConsumo } from "@/context/ConsumoContext";
 import familiaProfile from "../assets/familia profile.jpg";
 import insignia1 from "../assets/insignia1.png";
 import insignia2 from "../assets/insignia2.png";
@@ -61,16 +62,18 @@ const variantesPorEstado: Record<EstadoEmocion, string[]> = {
 };
 
 function ZonaKids() {
+  const { config } = useConsumo();
   const [variantIndex, setVariantIndex] = useState(0);
   const [puntosGastados, setPuntosGastados] = useState(0);
   const [recompensaSeleccionada, setRecompensaSeleccionada] = useState<string | null>(null);
   const [recompensaModal, setRecompensaModal] = useState<string | null>(null);
-  const objetivo = 3000;
-  const hoy = total(serieDiaria());
+
+  const objetivo = config.objetivoDiario;
+  const hoy = config.consumoBaseDiario;
   const pct = Math.min(100, Math.round((hoy / objetivo) * 100));
 
   let estado: EstadoEmocion = "feliz";
-  if (hoy > objetivo * 1.1) {
+  if (hoy > objetivo * 1.15) {
     estado = "enojado";
   } else if (hoy > objetivo) {
     estado = "triste";
@@ -196,12 +199,12 @@ function ZonaKids() {
               <div className="flex items-center gap-3">
                 <img
                   src={familiaProfile}
-                  alt="Familia del perfil"
+                  alt={config.nombreFamilia}
                   className="h-16 w-16 rounded-full border-2 border-white object-cover shadow-sm"
                 />
                 <div>
-                  <p className="font-semibold text-foreground">Casa Río</p>
-                  <p className="text-sm text-muted-foreground">Nivel 5 · Ahorrador en ascenso</p>
+                  <p className="font-semibold text-foreground">{config.nombreFamilia}</p>
+                  <p className="text-sm text-muted-foreground">{config.integrantes} integrantes · Nivel 5</p>
                 </div>
               </div>
 

@@ -33,7 +33,7 @@ export function SiteHeader() {
             to="/ranking"
             className="rounded-lg px-3 py-2 font-medium text-foreground/80 transition-colors hover:bg-accent focus-ring data-[status=active]:bg-accent data-[status=active]:text-primary"
           >
-            Ranking IoT
+            Ranking de Eficiencia
           </Link>
           <Link
             to="/zona-kids"

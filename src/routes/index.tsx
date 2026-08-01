@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   Droplets,
@@ -29,8 +29,8 @@ import {
   notificacionesConsumo,
   deteccionFuga,
 } from "@/lib/consumo";
-
 import { useConsumo } from "@/context/ConsumoContext";
+import familiaProfile from "../assets/familia profile.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -141,9 +141,18 @@ function Index() {
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
         <section className="rounded-3xl bg-gradient-agua p-6 shadow-soft sm:p-9">
-          <p className="inline-flex items-center gap-2 rounded-full bg-surface/80 px-3 py-1 text-sm font-medium text-primary">
-            <Users aria-hidden="true" className="h-4 w-4" /> {config.nombreFamilia} · {config.integrantes} personas
-          </p>
+          <Link
+            to="/perfil"
+            className="inline-flex items-center gap-2.5 rounded-full bg-surface/90 px-3.5 py-1.5 text-sm font-medium text-primary shadow-sm transition-all hover:bg-surface hover:shadow-md focus-ring"
+            title="Ver perfil de la casa"
+          >
+            <img
+              src={familiaProfile}
+              alt={config.nombreFamilia}
+              className="h-6 w-6 rounded-full border border-primary/30 object-cover"
+            />
+            <span>{config.nombreFamilia} · {config.integrantes} personas</span>
+          </Link>
           <h1 className="mt-4 text-3xl font-bold text-primary sm:text-4xl">
             Su consumo de agua, claro y al día
           </h1>

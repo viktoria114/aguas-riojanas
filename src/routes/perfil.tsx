@@ -4,6 +4,8 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { Progress } from "@/components/ui/progress";
 import familiaProfile from "../assets/familia profile.jpg";
 
+import { useConsumo } from "@/context/ConsumoContext";
+
 export const Route = createFileRoute("/perfil")({
   head: () => ({
     meta: [
@@ -18,6 +20,9 @@ export const Route = createFileRoute("/perfil")({
 });
 
 function Perfil() {
+  const { config } = useConsumo();
+  const ahorroEstimado = Math.max(0, config.objetivoDiario - config.consumoBaseDiario);
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -27,12 +32,12 @@ function Perfil() {
           <div className="flex flex-col items-center text-center sm:flex-row sm:text-left">
             <img
               src={familiaProfile}
-              alt="Perfil de la familia"
+              alt={config.nombreFamilia}
               className="h-36 w-36 rounded-full border-4 border-primary/20 object-cover shadow-lg sm:h-44 sm:w-44"
             />
             <div className="mt-5 sm:ml-6 sm:mt-0">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Perfil de la casa</p>
-              <h1 className="mt-2 text-3xl font-black text-foreground sm:text-4xl">Casa Río</h1>
+              <h1 className="mt-2 text-3xl font-black text-foreground sm:text-4xl">{config.nombreFamilia}</h1>
               <p className="mt-2 text-lg font-semibold text-primary">Nivel 5 · Ahorrador en ascenso</p>
               <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
                 Tu hogar ha ahorrado agua durante varias semanas y ya está cerca de desbloquear nuevas recompensas.
@@ -85,10 +90,10 @@ function Perfil() {
               <h2 className="text-xl font-bold text-foreground">Resumen familiar</h2>
             </div>
             <div className="mt-4 rounded-2xl bg-gradient-to-br from-sky-50 to-cyan-100 p-4 text-sm text-foreground/80">
-              <p>4 integrantes en la casa</p>
-              <p className="mt-2">Objetivo diario: 3.000 L</p>
-              <p className="mt-2">Consumo de hoy: 2.640 L</p>
-              <p className="mt-2">Ahorro estimado: 360 L</p>
+              <p>{config.integrantes} integrantes en la casa</p>
+              <p className="mt-2">Objetivo diario: {config.objetivoDiario.toLocaleString("es-AR")} L</p>
+              <p className="mt-2">Consumo de hoy: {config.consumoBaseDiario.toLocaleString("es-AR")} L</p>
+              <p className="mt-2">Ahorro estimado: {ahorroEstimado.toLocaleString("es-AR")} L</p>
             </div>
             <div className="mt-4 flex items-center gap-2 rounded-2xl border border-border bg-surface p-4">
               <Coins className="h-5 w-5 text-primary" />

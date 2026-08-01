@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import {
   Trophy,
   TrendingUp,
@@ -7,10 +7,15 @@ import {
   Crown,
   Users,
   Target,
+  Sparkles,
+  Percent,
+  Coins,
+  ArrowRight,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -38,6 +43,7 @@ import {
   type ZonaId,
   type Hogar,
 } from "@/lib/ranking-data";
+import { useConsumo } from "@/context/ConsumoContext";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -161,15 +167,39 @@ function DeltaIndicador({ delta }: { delta: number }) {
   );
 }
 
-function HogarCard({ hogar, posicion }: { hogar: Hogar; posicion: number }) {
+function HogarCard({
+  hogar,
+  posicion,
+  isMyHome,
+  cardRef,
+}: {
+  hogar: Hogar;
+  posicion: number;
+  isMyHome?: boolean | undefined;
+  cardRef?: React.RefObject<HTMLDivElement | null> | undefined;
+}) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-soft transition-shadow hover:shadow-md">
+    <div
+      ref={cardRef}
+      className={`flex items-center gap-4 rounded-2xl border p-4 shadow-soft transition-all ${
+        isMyHome
+          ? "border-2 border-primary bg-primary/10 ring-2 ring-primary/20 shadow-md"
+          : "border-border bg-card hover:shadow-md"
+      }`}
+    >
       <PosicionIndicador pos={posicion} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <p className="truncate font-semibold text-foreground">
-            {hogar.alias}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="truncate font-bold text-foreground">
+              {hogar.alias}
+            </p>
+            {isMyHome && (
+              <Badge className="bg-primary text-primary-foreground text-xs font-bold animate-pulse">
+                Tu Hogar
+              </Badge>
+            )}
+          </div>
           <TendenciaIndicador tendencia={hogar.tendencia} />
         </div>
         <div className="mt-1.5 flex items-center gap-3">
@@ -199,10 +229,13 @@ function HogarCard({ hogar, posicion }: { hogar: Hogar; posicion: number }) {
 // ── Main Component ───────────────────────────────────────────────────────────
 
 export function RankingIoTDashboard() {
+  const { config } = useConsumo();
   // ── Ranking state ──────────────────────────────────────────────────────────
   const [tabRanking, setTabRanking] = useState("zona");
   const [zonaFiltro, setZonaFiltro] = useState<ZonaId>("norte");
   const [barrioFiltro, setBarrioFiltro] = useState("todos");
+
+  const miHogarRef = useRef<HTMLDivElement | null>(null);
 
   // ── Memoized rankings ─────────────────────────────────────────────────────
   const rankingZonas = useMemo(() => calcularRankingZonas(), []);
@@ -229,6 +262,16 @@ export function RankingIoTDashboard() {
     setBarrioFiltro("todos");
   }, []);
 
+  const handleVerMiPuesto = () => {
+    setZonaFiltro("norte");
+    setBarrioFiltro("norte-barrio-san-francisco");
+    setTabRanking("hogar");
+
+    setTimeout(() => {
+      miHogarRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+  };
+
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
@@ -237,15 +280,72 @@ export function RankingIoTDashboard() {
         <div className="flex items-center gap-2">
           <Trophy className="h-6 w-6 text-primary" />
           <p className="inline-flex items-center gap-2 rounded-full bg-surface/80 px-3 py-1 text-sm font-medium text-primary">
-            Ranking de Eficiencia Hídrica IoT
+            Ranking de Eficiencia Hídrica
           </p>
         </div>
-        <h1 className="mt-4 text-3xl font-bold text-primary sm:text-4xl">
-          Competencia de Eficiencia Hídrica
-        </h1>
-        <p className="mt-3 max-w-2xl text-base text-foreground/75 sm:text-lg">
-          Ranking en tiempo real de hogares, barrios y zonas de La Rioja Capital basándonos en lecturas de telemetría hídrica.
-        </p>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-primary sm:text-4xl">
+              Competencia de Eficiencia Hídrica
+            </h1>
+            <p className="mt-2 max-w-2xl text-base text-foreground/75 sm:text-lg">
+              Ranking en tiempo real de hogares, barrios y zonas de La Rioja Capital basándonos en lecturas de telemetría hídrica.
+            </p>
+          </div>
+
+          <Button
+            onClick={handleVerMiPuesto}
+            size="lg"
+            className="gap-2.5 rounded-2xl bg-primary text-primary-foreground font-bold shadow-md transition-transform hover:scale-105"
+            id="btn-ver-mi-puesto-header"
+          >
+            <Target className="h-5 w-5" /> Ver mi puesto (#5 B° San Francisco)
+          </Button>
+        </div>
+      </section>
+
+      {/* ────── Banner de Incentivo: Descuentos Acumulables ────── */}
+      <section className="mt-8 rounded-3xl border border-teal/30 bg-gradient-to-r from-teal/10 via-primary/10 to-sky/10 p-6 shadow-soft sm:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-3 max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-surface px-3.5 py-1 text-xs font-bold text-teal shadow-xs">
+              <Sparkles className="h-4 w-4 text-teal" /> Beneficios y Descuentos Acumulables en Factura
+            </div>
+            <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
+              ¡Ahorrá agua y obtené hasta un <span className="text-primary font-black">35% de descuento</span> en tu cuota!
+            </h2>
+            <p className="text-sm text-foreground/80 sm:text-base">
+              Los primeros puestos en **Zona**, **Barrio** y **Hogar** obtienen bonificaciones directas en su boleta de Aguas Riojanas. 
+              <strong className="text-foreground"> ¡Todos los descuentos se acumulan entre sí!</strong>
+            </p>
+
+            <div className="grid gap-3 pt-2 sm:grid-cols-3">
+              <div className="rounded-2xl border border-primary/20 bg-card/90 p-3.5 shadow-xs">
+                <div className="flex items-center gap-2 text-primary font-bold text-sm">
+                  <Trophy className="h-4 w-4 text-warning" /> Top Zona Ganadora
+                </div>
+                <p className="mt-1 text-xl font-black text-foreground">+5% Descuento</p>
+                <p className="text-xs text-muted-foreground">Para todos los hogares de la zona</p>
+              </div>
+
+              <div className="rounded-2xl border border-teal/20 bg-card/90 p-3.5 shadow-xs">
+                <div className="flex items-center gap-2 text-teal font-bold text-sm">
+                  <Crown className="h-4 w-4 text-teal" /> Top Barrio Líder
+                </div>
+                <p className="mt-1 text-xl font-black text-foreground">+10% Descuento</p>
+                <p className="text-xs text-muted-foreground">Acumulable para el barrio líder</p>
+              </div>
+
+              <div className="rounded-2xl border border-success/20 bg-card/90 p-3.5 shadow-xs">
+                <div className="flex items-center gap-2 text-success font-bold text-sm">
+                  <Coins className="h-4 w-4 text-success" /> Top Hogar Individual
+                </div>
+                <p className="mt-1 text-xl font-black text-foreground">+20% Descuento</p>
+                <p className="text-xs text-muted-foreground">Directo en la boleta de tu casa</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* ────────────────────────── KPIs ──────────────────────────── */}
@@ -276,17 +376,28 @@ export function RankingIoTDashboard() {
         aria-labelledby="ranking-titulo"
         className="mt-8 rounded-3xl border border-border bg-card p-5 shadow-soft sm:p-7"
       >
-        <h2
-          id="ranking-titulo"
-          className="flex items-center gap-2 text-xl font-bold text-foreground sm:text-2xl"
-        >
-          <Trophy className="h-5 w-5 text-teal" />
-          Ranking Competitivo Multinivel
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Clasificación por eficiencia hídrica (% de ahorro respecto al consumo
-          histórico de cada hogar).
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2
+              id="ranking-titulo"
+              className="flex items-center gap-2 text-xl font-bold text-foreground sm:text-2xl"
+            >
+              <Trophy className="h-5 w-5 text-teal" />
+              Ranking Competitivo Multinivel
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Clasificación por eficiencia hídrica (% de ahorro respecto al consumo histórico de cada hogar).
+            </p>
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={handleVerMiPuesto}
+            className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
+          >
+            <Target className="h-4 w-4" /> Ir a mi puesto (#5)
+          </Button>
+        </div>
 
         <Tabs value={tabRanking} onValueChange={setTabRanking} className="mt-5">
           <TabsList className="h-auto w-full flex-wrap gap-1 bg-muted p-1 sm:w-auto">
@@ -472,9 +583,20 @@ export function RankingIoTDashboard() {
             </p>
 
             <div className="max-h-[540px] space-y-3 overflow-y-auto pr-1">
-              {hogaresListados.map((h, i) => (
-                <HogarCard key={h.id} hogar={h} posicion={i + 1} />
-              ))}
+              {hogaresListados.map((h, i) => {
+                const isMyHome = Boolean(
+                  h.esMiHogar || (config.nombreFamilia && h.alias.includes(config.nombreFamilia))
+                );
+                return (
+                  <HogarCard
+                    key={h.id}
+                    hogar={h}
+                    posicion={i + 1}
+                    isMyHome={isMyHome}
+                    cardRef={isMyHome ? miHogarRef : undefined}
+                  />
+                );
+              })}
               {hogaresListados.length === 0 && (
                 <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
                   No hay hogares registrados para esta selección.
@@ -487,3 +609,4 @@ export function RankingIoTDashboard() {
     </>
   );
 }
+
