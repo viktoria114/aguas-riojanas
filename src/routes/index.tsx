@@ -30,6 +30,8 @@ import {
   deteccionFuga,
 } from "@/lib/consumo";
 
+import { useConsumo } from "@/context/ConsumoContext";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -92,16 +94,18 @@ function Kpi({
 }
 
 function Index() {
+  const { config } = useConsumo();
   const [periodo, setPeriodo] = useState("dia");
   const dia = serieDiaria();
   const semana = serieSemanal();
   const mes = serieMensual();
   const consejo = consejos[new Date().getDate() % consejos.length];
-  const objetivo = 3000;
-  const hoy = total(dia);
+  
+  const objetivo = config.objetivoDiario;
+  const hoy = config.consumoBaseDiario;
   const pct = Math.min(100, Math.round((hoy / objetivo) * 100));
-  const mediaDiaria = promedio(semana);
-  const litrosMes = Math.round(total(mes) / 12);
+  const mediaDiaria = Math.round(config.consumoBaseDiario * 0.95);
+  const litrosMes = Math.round(config.consumoBaseDiario * 30);
   const gastoMes = coste(litrosMes);
   const avisos = notificacionesConsumo(hoy, objetivo, mediaDiaria);
   const fuga = deteccionFuga(dia);
@@ -112,6 +116,25 @@ function Index() {
     info: "border-border bg-surface",
   } as const;
 
+  const desglosadoFamilia = [
+    { nombre: "Casa (total)", litros: config.consumoBaseDiario, icono: "casa" },
+    {
+      nombre: "Cocina",
+      litros: Math.round((config.consumoBaseDiario * config.distribucion.cocinaPct) / 100),
+      icono: "cocina",
+    },
+    {
+      nombre: "Baños",
+      litros: Math.round((config.consumoBaseDiario * config.distribucion.banosPct) / 100),
+      icono: "bano",
+    },
+    {
+      nombre: "Jardín",
+      litros: Math.round((config.consumoBaseDiario * config.distribucion.jardinPct) / 100),
+      icono: "jardin",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -119,7 +142,7 @@ function Index() {
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
         <section className="rounded-3xl bg-gradient-agua p-6 shadow-soft sm:p-9">
           <p className="inline-flex items-center gap-2 rounded-full bg-surface/80 px-3 py-1 text-sm font-medium text-primary">
-            <Users aria-hidden="true" className="h-4 w-4" /> Familia Ruiz · 4 personas
+            <Users aria-hidden="true" className="h-4 w-4" /> {config.nombreFamilia} · {config.integrantes} personas
           </p>
           <h1 className="mt-4 text-3xl font-bold text-primary sm:text-4xl">
             Su consumo de agua, claro y al día
@@ -148,7 +171,7 @@ function Index() {
           <Kpi
             etiqueta="Hoy"
             valor={`${hoy.toLocaleString("es-ES")} L`}
-            ayuda={`${Math.round(hoy / 4)} L por persona · ${ars(coste(hoy))}`}
+            ayuda={`${Math.round(hoy / (config.integrantes || 1))} L por persona · ${ars(coste(hoy))}`}
             destacado
           />
           <Kpi
@@ -306,9 +329,9 @@ function Index() {
           <section className="rounded-3xl border border-border bg-card p-5 shadow-soft sm:p-7">
             <h2 className="text-xl font-bold text-foreground">¿En qué se usa el agua en casa?</h2>
             <ul className="mt-5 space-y-4">
-              {familia.map((f) => {
+              {desglosadoFamilia.map((f) => {
                 const Icono = iconos[f.icono as keyof typeof iconos];
-                const porcentaje = Math.round((f.litros / (familia[0]?.litros ?? 1)) * 100);
+                const porcentaje = Math.round((f.litros / (desglosadoFamilia[0]?.litros || 1)) * 100);
                 return (
                   <li key={f.nombre}>
                     <div className="flex items-center justify-between gap-3">

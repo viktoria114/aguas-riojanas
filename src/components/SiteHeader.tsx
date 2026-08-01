@@ -30,6 +30,12 @@ export function SiteHeader() {
             Mi consumo
           </Link>
           <Link
+            to="/ranking"
+            className="rounded-lg px-3 py-2 font-medium text-foreground/80 transition-colors hover:bg-accent focus-ring data-[status=active]:bg-accent data-[status=active]:text-primary"
+          >
+            Ranking &amp; IoT
+          </Link>
+          <Link
             to="/admin"
             className="rounded-lg px-3 py-2 font-medium text-foreground/80 transition-colors hover:bg-accent focus-ring data-[status=active]:bg-accent data-[status=active]:text-primary"
           >

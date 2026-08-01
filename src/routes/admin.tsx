@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/table";
 import { alertas, serieDiaria, serieMensual, serieSemanal, total, zonas, ars, coste } from "@/lib/consumo";
 
+import { FormularioConsumoFamiliar } from "@/components/FormularioConsumoFamiliar";
+import { useConsumo } from "@/context/ConsumoContext";
+
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
@@ -23,7 +26,7 @@ export const Route = createFileRoute("/admin")({
       {
         name: "description",
         content:
-          "Panel de administración de Mi Agua Riojana: mapa de calor por zonas, consumo diario, semanal y mensual, alertas de red y registro de lecturas.",
+          "Panel de administración de Mi Agua Riojana: configuración de consumo familiar, mapa de calor por zonas, consumo diario, semanal y mensual, alertas de red y registro de lecturas.",
       },
       { property: "og:title", content: "Panel de administración | Mi Agua Riojana" },
       {
@@ -81,11 +84,14 @@ function MetricCard({
 }
 
 function Admin() {
+  const { config } = useConsumo();
   const [periodo, setPeriodo] = useState("dia");
   const [registros, setRegistros] = useState<Registro[]>([]);
   const dia = serieDiaria(11);
   const semana = serieSemanal(31);
   const mes = serieMensual(57);
+
+  const mediaPorPersona = Math.round(config.consumoBaseDiario / (config.integrantes || 1));
 
   return (
     <div className="min-h-screen bg-background">
@@ -108,6 +114,11 @@ function Admin() {
           </p>
         </div>
 
+        {/* Dynamic Family Consumption Config Panel */}
+        <div className="mt-8">
+          <FormularioConsumoFamiliar />
+        </div>
+
         <div className="mt-8">
           <MapaCalor />
         </div>
@@ -115,12 +126,17 @@ function Admin() {
         <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard etiqueta="Hogares abonados" valor="29.230" delta={0.8} icono={Home} />
           <MetricCard
-            etiqueta="Consumo hoy"
-            valor={`${(total(dia) * 29).toLocaleString("es-ES")} m³`}
+            etiqueta="Consumo base activo"
+            valor={`${config.consumoBaseDiario.toLocaleString("es-AR")} L`}
             delta={-2.4}
             icono={Waves}
           />
-          <MetricCard etiqueta="Media por hogar" valor="126 L" delta={-1.1} icono={Gauge} />
+          <MetricCard
+            etiqueta="Media por persona"
+            valor={`${mediaPorPersona} L`}
+            delta={-1.1}
+            icono={Gauge}
+          />
           <MetricCard etiqueta="Alertas activas" valor="3" delta={5.0} icono={AlertTriangle} />
         </section>
 
